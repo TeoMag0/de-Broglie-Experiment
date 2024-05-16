@@ -29,10 +29,10 @@ public class ElectronWave {
 
             int numTicks = (int)((line.length()-lastWaveDist)/tickMarkInterval);
             lastWaveDist = line.length() - numTicks*tickMarkInterval;
-            Vector2 lastWaveNewDisp = Vector2.multiply(line.getAxis(), lastWaveDist);
+            Vector2 newDisp = Vector2.multiply(line.getAxis(), lastWaveDist);
             Vector2 tickDisp = Vector2.multiply(line.getAxis(), tickMarkInterval);
             for(int i=0;i<numTicks;i++){
-                Vector2 tickLoc = Vector2.sum(Vector2.sum(line.points[0], lastWaveNewDisp), Vector2.multiply(tickDisp, i));
+                Vector2 tickLoc = Vector2.sum(Vector2.sum(line.points[0], newDisp), Vector2.multiply(tickDisp, i));
                 float tickAngle = (float)(Math.PI/2 + Math.atan2(line.getAxis().getY(), line.getAxis().getX()));
 
                 drawTick(g, tickLoc, tickAngle);
@@ -40,7 +40,14 @@ public class ElectronWave {
         }
     }
     private void drawTick(Graphics g, Vector2 point, float angle){
-        Vector2 halfLength = Vector2.sum(point, new Vector2());
+        Vector2 halfLength = new Vector2(tickMarkLength/2, angle, true);
+        Vector2 startLoc = Vector2.difference(point, halfLength);
+        Vector2 endLoc = Vector2.sum(point, halfLength);
+
+        Vector2 screenStart = Screen.getScreenCoords(startLoc);
+        Vector2 screenEnd = Screen.getScreenCoords(endLoc);
+
+        g.drawLine(screenStart.intX(), screenStart.intY(), screenEnd.intX(), screenEnd.intY());
     }
 
     public float length(){
