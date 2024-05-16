@@ -8,20 +8,47 @@ public class ElectronWave {
     private static final ArrayList<ElectronWave> allWaves = new ArrayList<>();
     private static final int maxWaveBounces = 100;
     private int waveBounces;
+    private final float tickMarkInterval;
+    private final float tickMarkLength;
 
     public ElectronWave(Vector2 originPoint, float angle){
         allWaves.add(this);
         this.originPoint = originPoint.clone();
         this.angle = angle;
         waveBounces = 0;
+        tickMarkInterval = .3f;
+        tickMarkLength = .5f;
 
         waveSegments = new ArrayList<>();
     }
 
     public void drawWave(Graphics g){
+        float lastWaveDist = 0;
         for(LineSegment line : waveSegments){
             line.drawMe(g);
+
+            int numTicks = (int)((line.length()-lastWaveDist)/tickMarkInterval);
+            lastWaveDist = line.length() - numTicks*tickMarkInterval;
+            Vector2 lastWaveNewDisp = Vector2.multiply(line.getAxis(), lastWaveDist);
+            Vector2 tickDisp = Vector2.multiply(line.getAxis(), tickMarkInterval);
+            for(int i=0;i<numTicks;i++){
+                Vector2 tickLoc = Vector2.sum(Vector2.sum(line.points[0], lastWaveNewDisp), Vector2.multiply(tickDisp, i));
+                float tickAngle = (float)(Math.PI/2 + Math.atan2(line.getAxis().getY(), line.getAxis().getX()));
+
+                drawTick(g, tickLoc, tickAngle);
+            }
         }
+    }
+    private void drawTick(Graphics g, Vector2 point, float angle){
+        Vector2 halfLength = Vector2.sum(point, new Vector2());
+    }
+
+    public float length(){
+        float length = 0;
+        for(LineSegment each : waveSegments){
+            length += each.length();
+        }
+        return length;
     }
 
     public synchronized void calculateWave(){
@@ -76,7 +103,6 @@ public class ElectronWave {
         Vector2 colPoint = null;
         for(GraphiteLayer each : GraphiteLayer.allGraphites){
             Vector2 intersection = LineSegment.intersection(seg, each.lineSegment());
-            System.out.println(intersection);
             if(intersection == null){
                 continue;
             }
