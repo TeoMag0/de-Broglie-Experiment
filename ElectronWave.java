@@ -24,16 +24,16 @@ public class ElectronWave {
         }
     }
 
-    public void calculateWave(){
+    public synchronized void calculateWave(){
         waveSegments.clear();
         waveBounces = 0;
         calculateWave(originPoint, angle);
     }
     private void calculateWave(Vector2 origin, float angle){
-        //waveBounces++;
-        ///if(waveBounces > maxWaveBounces){
-        //    return;
-        //}
+        waveBounces++;
+        if(waveBounces > maxWaveBounces){
+            return;
+        }
         float sMagnitude = 2*Screen.getWorldCoords(Screen.screenPixelDimensions).magnitude();
         LineSegment segment = new LineSegment(origin, angle, sMagnitude);
 
@@ -57,9 +57,11 @@ public class ElectronWave {
         for (int i = 0; i < seg.points.length; i++) {
             float px = seg.points[i].getX() > max.getX() ? max.getX() : seg.points[i].getX();
             px = px < min.getX() ? min.getX() : px;
+            float py = seg.slope()*px+seg.yInt();
 
-            float py = seg.points[i].getY() > max.getY() ? max.getY() : seg.points[i].getY();
+            py = seg.points[i].getY() > max.getY() ? max.getY() : seg.points[i].getY();
             py = py < min.getY() ? min.getY() : py;
+            px = (py-seg.yInt())/seg.slope();
 
             if(i == 0){
                 p1 = new Vector2(px, py);
@@ -74,6 +76,7 @@ public class ElectronWave {
         Vector2 colPoint = null;
         for(GraphiteLayer each : GraphiteLayer.allGraphites){
             Vector2 intersection = LineSegment.intersection(seg, each.lineSegment());
+            System.out.println(intersection);
             if(intersection == null){
                 continue;
             }

@@ -2,8 +2,8 @@ import java.awt.Graphics;
 
 public class LineSegment {
     public final Vector2[] points;
-    public final float slope;
-    public final float yInt;
+    private float slope;
+    private float yInt;
 
     public LineSegment(Vector2 p1, Vector2 p2){
         points = new Vector2[2];
@@ -31,6 +31,23 @@ public class LineSegment {
     public float length(){
         return Vector2.distance(points[0], points[1]);
     }
+    public void setPoint2(Vector2 p2){
+        points[1] = p2.clone();
+
+        if(points[1].getX() == points[0].getX()){
+            slope = Float.POSITIVE_INFINITY;
+            yInt = Float.NaN;
+        }else{
+            slope = (points[1].getY() - points[0].getY()) / (points[1].getX() - points[0].getX());
+            yInt = points[0].getY() - slope * points[0].getX();
+        }
+    }
+    public float slope(){
+        return slope;
+    }
+    public float yInt(){
+        return yInt;
+    }
 
     public static Vector2 intersection(LineSegment l1, LineSegment l2){
         if(l1.slope == l2.slope){
@@ -46,15 +63,15 @@ public class LineSegment {
         }
 
         float x, y;
-        if(l1.yInt == Float.NaN){
+        if(Float.isNaN(l1.yInt())){
             x = l1.points[0].getX();
-            y = l2.slope*x+l2.yInt;
-        }else if(l2.yInt == Float.NaN){
+            y = l2.slope()*x+l2.yInt();
+        }else if(Float.isNaN(l2.yInt())){
             x = l2.points[0].getX();
-            y = l1.slope * x + l1.yInt;
+            y = l1.slope() * x + l1.yInt();
         }else{
-            x = (l2.yInt - l1.yInt) / (l1.slope - l2.slope);
-            y = l1.slope * x + l1.yInt;
+            x = (l2.yInt() - l1.yInt()) / (l1.slope() - l2.slope());
+            y = l1.slope()* x + l1.yInt();
         }
 
         //check domains

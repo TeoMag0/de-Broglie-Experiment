@@ -34,7 +34,7 @@ public class Screen extends JPanel implements MouseInputListener{
 		g2.setStroke(new BasicStroke(3));
 
 		if (draggingGraphite != null) {
-			draggingGraphite.lineSegment().points[1] = mousePos;
+			draggingGraphite.lineSegment().setPoint2(mousePos);
 		}
 
 		ElectronWave.calculateAll();
@@ -46,10 +46,6 @@ public class Screen extends JPanel implements MouseInputListener{
 	public void animate(){
 		while(true){
 
-			
-
-
-			repaint();
 			try{
 				Thread.sleep(100);
 			}catch(InterruptedException e){
@@ -92,10 +88,12 @@ public class Screen extends JPanel implements MouseInputListener{
 		if (draggingGraphite == null) {
 			draggingGraphite = new GraphiteLayer(clickPoint, mousePos);
 		}
+		repaint();
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		draggingGraphite = null;
+		repaint();
 	}
 
 
