@@ -21,14 +21,17 @@ public class Screen extends JPanel implements MouseInputListener{
 
 		draggingGraphite = null;
 		
-		new ElectronWave(Vector2.zero(), (float)Math.PI/4);
+		new ElectronWave(new Vector2(-4, .5f), 0, 0);
+		new ElectronWave(new Vector2(-4, -.25f), 0, 1);
 
-		new GraphiteLayer(new Vector2(1.47f, 3.14f), new Vector2(1.42f, 1.6f));
-		new GraphiteLayer(new Vector2(.08f, 3.39f), new Vector2(.97f, 3.41f));
+		new GraphiteLayer(new Vector2(-4f, -2f), new Vector2(4, 2f), 0);
+		new GraphiteLayer(new Vector2(-4f+2, -2f), new Vector2(4+2, 2f), 1);
 	}
 
 	public synchronized void paintComponent(Graphics g){
 		super.paintComponent(g);
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, screenPixelDimensions.intX(), screenPixelDimensions.intY());
 
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setStroke(new BasicStroke(3));
@@ -47,7 +50,7 @@ public class Screen extends JPanel implements MouseInputListener{
 		while(true){
 
 			try{
-				Thread.sleep(100);
+				Thread.sleep(10);
 			}catch(InterruptedException e){
 				e.printStackTrace();
 			}
@@ -81,12 +84,13 @@ public class Screen extends JPanel implements MouseInputListener{
 	@Override
 	public void mousePressed(MouseEvent e) {
 		clickPoint = Screen.getWorldCoords(new Vector2(e.getX(), e.getY()));
+		System.out.println(clickPoint);
 	}
 	@Override
 	public void mouseDragged(MouseEvent e){
 		mousePos = Screen.getWorldCoords(new Vector2(e.getX(), e.getY()));
 		if (draggingGraphite == null) {
-			draggingGraphite = new GraphiteLayer(clickPoint, mousePos);
+			draggingGraphite = new GraphiteLayer(clickPoint, mousePos, 0);
 		}
 		repaint();
 	}

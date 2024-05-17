@@ -5,9 +5,12 @@ public class GraphiteLayer {
     private LineSegment segment;
     public static final ArrayList<GraphiteLayer> allGraphites = new ArrayList<>();
 
-    public GraphiteLayer(Vector2 p1, Vector2 p2){
+    private int layer;
+
+    public GraphiteLayer(Vector2 p1, Vector2 p2, int layer){
         allGraphites.add(this);
         segment = new LineSegment(p1, p2);
+        this.layer = layer;
     }
 
     public LineSegment lineSegment(){
@@ -23,5 +26,9 @@ public class GraphiteLayer {
         for(GraphiteLayer each : allGraphites){
             each.drawMe(g);
         }
+    }
+
+    public int layer(){
+        return layer;
     }
 }

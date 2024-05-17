@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
+import java.util.HashSet;
 
 public class ElectronWave {
     private Vector2 originPoint;
@@ -11,7 +12,10 @@ public class ElectronWave {
     private final float tickMarkInterval;
     private final float tickMarkLength;
 
-    public ElectronWave(Vector2 originPoint, float angle){
+    private int layer;
+    private HashSet<LineSegment> braggSegments;
+
+    public ElectronWave(Vector2 originPoint, float angle, int layer){
         allWaves.add(this);
         this.originPoint = originPoint.clone();
         this.angle = angle;
@@ -20,11 +24,12 @@ public class ElectronWave {
         tickMarkLength = .2f;
 
         waveSegments = new ArrayList<>();
+        this.layer = layer;
+        braggSegments = new HashSet<>();
     }
     
     public void drawWave(Graphics g){
         float waveOffset = 0;
-        System.out.println();
         for(LineSegment line : waveSegments){
             line.drawMe(g);
             if(line.length() + waveOffset - tickMarkInterval < 0){
@@ -79,14 +84,17 @@ public class ElectronWave {
         LineSegment segment = new LineSegment(origin, angle, sMagnitude);
 
         Vector2 screenTopRight = Screen.getWorldCoords(new Vector2(Screen.screenPixelDimensions.getX(), 0));
-        System.out.println(screenTopRight);
         Vector2 screenBottomLeft = Vector2.multiply(screenTopRight, -1);
         LineSegment clampedSeg = clampSegment(segment, screenBottomLeft, screenTopRight);
 
         // Object[] {Vector2 origin, float direction}
         Object[] reflectedWave = getReflectedWave(clampedSeg, origin);
         if (reflectedWave != null) {
-            waveSegments.add(new LineSegment(origin, (Vector2)reflectedWave[0]));
+            LineSegment newSeg = new LineSegment(origin, (Vector2)reflectedWave[0]);
+            waveSegments.add(newSeg);
+            if(newSeg.getAxis().equals(clampedSeg.getAxis())){
+                braggSegments.add(newSeg);
+            }
             calculateWave((Vector2)reflectedWave[0], (float)reflectedWave[1]);
         }else{
             waveSegments.add(clampedSeg);
@@ -97,13 +105,22 @@ public class ElectronWave {
         Vector2 p1 = null;
         Vector2 p2 = null;
         for (int i = 0; i < seg.points.length; i++) {
-            float px = seg.points[i].getX() > max.getX() ? max.getX() : seg.points[i].getX();
-            px = px < min.getX() ? min.getX() : px;
-            float py = seg.slope()*px+seg.yInt();
 
-            py = py > max.getY() ? max.getY() : seg.points[i].getY();
-            py = py < min.getY() ? min.getY() : py;
-            px = (py-seg.yInt())/seg.slope();
+            float px = seg.points[i].getX();
+            if (px > max.getX()) {
+                px = max.getX();
+            } else if (px < min.getX()) {
+                px = min.getX();
+            }
+            float py = seg.slope()*px+seg.yInt();
+            if(py > max.getY()){
+                py = max.getY();
+                px = (py - seg.yInt()) / seg.slope();
+            }else if(py < min.getY()){
+                py = min.getY();
+                px = (py - seg.yInt()) / seg.slope();
+            }
+
 
             if(i == 0){
                 p1 = new Vector2(px, py);
@@ -111,7 +128,6 @@ public class ElectronWave {
                 p2 = new Vector2(px, py);
             }
         }
-        System.out.println(p1+", "+p2);
         return new LineSegment(p1, p2);
     }
     private Object[] getReflectedWave(LineSegment seg, Vector2 origin){
@@ -135,14 +151,18 @@ public class ElectronWave {
             return null;
         }
 
-        Vector2 graphiteNormal = new Vector2(graphite.lineSegment().getAxis().getY(), -graphite.lineSegment().getAxis().getX());
-        Vector2 segAxis = seg.getAxis();
+        if(layer == graphite.layer()){
+            Vector2 graphiteNormal = new Vector2(graphite.lineSegment().getAxis().getY(), -graphite.lineSegment().getAxis().getX());
+            Vector2 segAxis = seg.getAxis();
 
-        Vector2 deltaV = Vector2.multiply(graphiteNormal, -2*Vector2.dot(graphiteNormal, segAxis));
+            Vector2 deltaV = Vector2.multiply(graphiteNormal, -2*Vector2.dot(graphiteNormal, segAxis));
 
-        Vector2 newDirection = Vector2.sum(segAxis, deltaV);
+            Vector2 newDirection = Vector2.sum(segAxis, deltaV);
 
-        return new Object[] {colPoint, (float)Math.atan2(newDirection.getY(), newDirection.getX())};
+            return new Object[] {colPoint, (float)Math.atan2(newDirection.getY(), newDirection.getX())};
+        }else{
+            return new Object[] { colPoint, (float) Math.atan2(seg.getAxis().getY(), seg.getAxis().getX()) };
+        }
     }
 
     public static void drawAll(Graphics g){
@@ -155,5 +175,8 @@ public class ElectronWave {
         for(ElectronWave each : allWaves){
             each.calculateWave();
         }
+    }
+    public int layer(){
+        return layer;
     }
 }
