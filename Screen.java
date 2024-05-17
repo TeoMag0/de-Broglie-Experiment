@@ -22,10 +22,9 @@ public class Screen extends JPanel implements MouseInputListener{
 		draggingGraphite = null;
 		
 		new ElectronWave(new Vector2(-4, .5f), 0, 0);
-		new ElectronWave(new Vector2(-4, -.25f), 0, 1);
+		new ElectronWave(new Vector2(-4, -.5f), 0, 1);
 
-		new GraphiteLayer(new Vector2(-4f, -2f), new Vector2(4, 2f), 0);
-		new GraphiteLayer(new Vector2(-4f+2, -2f), new Vector2(4+2, 2f), 1);
+		new GraphiteCrystal(new Vector2(3,0), (float)(Math.PI/6), 1f, 6);
 	}
 
 	public synchronized void paintComponent(Graphics g){
