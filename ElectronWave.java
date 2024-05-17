@@ -17,26 +17,33 @@ public class ElectronWave {
         this.angle = angle;
         waveBounces = 0;
         tickMarkInterval = .3f;
-        tickMarkLength = .5f;
+        tickMarkLength = .2f;
 
         waveSegments = new ArrayList<>();
     }
-
+    
     public void drawWave(Graphics g){
-        float lastWaveDist = 0;
+        float waveOffset = 0;
+        System.out.println();
         for(LineSegment line : waveSegments){
             line.drawMe(g);
+            if(line.length() + waveOffset - tickMarkInterval < 0){
+                waveOffset += line.length();
+                continue;
+            }
 
-            int numTicks = (int)((line.length()-lastWaveDist)/tickMarkInterval);
-            lastWaveDist = line.length() - numTicks*tickMarkInterval;
-            Vector2 newDisp = Vector2.multiply(line.getAxis(), lastWaveDist);
+            int numTicks = (int)((line.length()-waveOffset)/tickMarkInterval)+1;
+
+            Vector2 newStart = Vector2.sum(line.points[0], Vector2.multiply(line.getAxis(), waveOffset));
             Vector2 tickDisp = Vector2.multiply(line.getAxis(), tickMarkInterval);
             for(int i=0;i<numTicks;i++){
-                Vector2 tickLoc = Vector2.sum(Vector2.sum(line.points[0], newDisp), Vector2.multiply(tickDisp, i));
+                Vector2 tickLoc = Vector2.sum(newStart, Vector2.multiply(tickDisp, i));
                 float tickAngle = (float)(Math.PI/2 + Math.atan2(line.getAxis().getY(), line.getAxis().getX()));
 
                 drawTick(g, tickLoc, tickAngle);
             }
+            
+            waveOffset = tickMarkInterval-(line.length()-waveOffset - (numTicks-1)*tickMarkInterval);
         }
     }
     private void drawTick(Graphics g, Vector2 point, float angle){
@@ -71,7 +78,8 @@ public class ElectronWave {
         float sMagnitude = 2*Screen.getWorldCoords(Screen.screenPixelDimensions).magnitude();
         LineSegment segment = new LineSegment(origin, angle, sMagnitude);
 
-        Vector2 screenTopRight = Screen.getWorldCoords(new Vector2(Screen.screenPixelDimensions.getX(), -Screen.screenPixelDimensions.getY()));
+        Vector2 screenTopRight = Screen.getWorldCoords(new Vector2(Screen.screenPixelDimensions.getX(), 0));
+        System.out.println(screenTopRight);
         Vector2 screenBottomLeft = Vector2.multiply(screenTopRight, -1);
         LineSegment clampedSeg = clampSegment(segment, screenBottomLeft, screenTopRight);
 
@@ -93,7 +101,7 @@ public class ElectronWave {
             px = px < min.getX() ? min.getX() : px;
             float py = seg.slope()*px+seg.yInt();
 
-            py = seg.points[i].getY() > max.getY() ? max.getY() : seg.points[i].getY();
+            py = py > max.getY() ? max.getY() : seg.points[i].getY();
             py = py < min.getY() ? min.getY() : py;
             px = (py-seg.yInt())/seg.slope();
 
@@ -103,6 +111,7 @@ public class ElectronWave {
                 p2 = new Vector2(px, py);
             }
         }
+        System.out.println(p1+", "+p2);
         return new LineSegment(p1, p2);
     }
     private Object[] getReflectedWave(LineSegment seg, Vector2 origin){
