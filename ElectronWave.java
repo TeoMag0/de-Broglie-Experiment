@@ -15,12 +15,12 @@ public class ElectronWave {
     private int layer;
     private HashSet<LineSegment> braggSegments;
 
-    public ElectronWave(Vector2 originPoint, float angle, int layer){
+    public ElectronWave(Vector2 originPoint, float angle, int layer, float wavelength){
         allWaves.add(this);
         this.originPoint = originPoint.clone();
         this.angle = angle;
         waveBounces = 0;
-        tickMarkInterval = .3f;
+        tickMarkInterval = wavelength;
         tickMarkLength = .2f;
 
         waveSegments = new ArrayList<>();
